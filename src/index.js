@@ -1,48 +1,45 @@
-export function createPrewiewMarkup(countries) {
-  const markup = countries
-    .map(({ name, flags }) => {
-      return `<li class = 'country-list-item'>
-      <img class ="country-list-img" src="${flags.svg}" alt = "${name.official}" width = "30"/>
-      <p class = 'country-list-text'>${name.official}</p>
-      </li>`;
-    })
-    .join('');
-  const refs = getRefs();
-  refs.countryList.innerHTML = markup;
+import './css/styles.css';
+import debounce from 'lodash.debounce';
+import { fetchCountries } from './js/fetchCountries';
+import { Notify } from 'notiflix/build/notiflix-notify-aio';
+import {
+  createMarkup,
+  createPrewiewMarkup,
+  resetMarkup,
+} from './js/createMarkup';
+
+const DEBOUNCE_DELAY = 300;
+
+const searchCountry = document.querySelector('#search-box');
+
+searchCountry.addEventListener(
+  'input',
+  debounce(onSearchCountry, DEBOUNCE_DELAY)
+);
+
+function onSearchCountry(e) {
+  resetMarkup();
+
+  const nameCountry = e.target.value.trim();
+
+  if (nameCountry === '') {
+    return;
+  }
+
+  fetchCountries(nameCountry).then(onSuccess).catch(onError);
 }
 
-export function createMarkup(countries) {
-  const markup = countries
-    .map(({ name, capital, population, flags, languages }) => {
-      return `
-        <div class = "country-info-wrapper">
-        <div class = 'country-info-list'>
-        <img class ="country-list-img" src=" ${flags.svg}" alt = "${
-        name.official
-      }" width = "30"/>
-      <h2 class ="country-title"> ${name.common}</h2></div>
-      <ul><li>
-      <p class = "coutry-info-text"><b>Capital:</b> ${capital}</p></li>
-      <li><p class = "coutry-info-text"><b>Population:</b> ${population}</p></li>
-      <li><p class = "coutry-info-text"><b>Languages:</b> ${Object.values(
-        languages
-      )}</p></li>
-      </ul></div>`;
-    })
-    .join('');
-  const refs = getRefs();
-  refs.countryInfo.innerHTML = markup;
+function onError() {
+  Notify.failure('Oops, there is no country with that name');
 }
 
-export function resetMarkup() {
-  const refs = getRefs();
-  refs.countryInfo.innerHTML = '';
-  refs.countryList.innerHTML = '';
-}
-
-function getRefs() {
-  return {
-    countryList: document.querySelector('.country-list'),
-    countryInfo: document.querySelector('.country-info'),
-  };
+function onSuccess(data) {
+  if (data.length > 10) {
+    Notify.info('Too many matches found. Please enter a more specific name.');
+    return;
+  } else if (data.length === 1) {
+    createMarkup(data);
+  } else {
+    createPrewiewMarkup(data);
+  }
 }
