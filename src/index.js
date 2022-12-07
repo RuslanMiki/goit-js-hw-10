@@ -1,12 +1,12 @@
 import './css/styles.css';
 import debounce from 'lodash.debounce';
-import { fetchCountries } from './js/fetchCountries';
+import { fetchCountries } from './fetchCountries';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 import {
   createMarkup,
   createPrewiewMarkup,
   resetMarkup,
-} from './js/createMarkup';
+} from './createMarkup';
 
 const DEBOUNCE_DELAY = 300;
 
